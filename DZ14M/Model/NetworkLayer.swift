@@ -32,8 +32,8 @@ final class NetworkLayer {
     
     func searchFetchProducts(
         completion: @escaping (Result<[ProductsName],
-                               Error>) -> Void
-    ) {
+                               Error>
+        ) -> Void) {
         let request = URLRequest(url: baseURL)
         
         URLSession.shared.dataTask(with: request) { data, response, error in
@@ -46,6 +46,13 @@ final class NetworkLayer {
             }
         }
         .resume()
+    }
+    
+    func searchFetchProducts() async throws -> [ProductsName] {
+        let request = URLRequest(url: baseURL)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        let model: ProductsSearch = self.decode(with: data)
+        return model.products
     }
     
     func searchProducts(
@@ -74,9 +81,16 @@ final class NetworkLayer {
         }
     }
     
+    func searchProducts() async throws -> [ProductsName] {
+        let url = baseURL.appendingPathComponent("search")
+        let (data, response) = URLSession.shared.data(for: url)
+    }
+    
     public func changeProduct(
         with model: ProductsName,
-        completion: @escaping (Result<Bool, Error>
+        completion: @escaping (
+            Result<Bool,
+            Error>
         ) -> Void) {
         _ = baseURL.appendingPathComponent("add")
         var request = URLRequest(url: baseURL)

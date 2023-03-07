@@ -71,36 +71,68 @@ class ViewController: UIViewController, UICollectionViewDelegate {
         }
     }
     
+//    private func fetchProduct() {
+//        isLoading = true
+//
+//        NetworkLayer.shared.searchFetchProducts() { result in
+//            self.isLoading = false
+//            switch result {
+//            case .success(let model):
+//                self.productsName = model
+//                DispatchQueue.main.async {
+//                    self.productTableView.reloadData()
+//                }
+//            case .failure(let error):
+//                self.showError(with: error)
+//            }
+//        }
+//    }
+    
     private func fetchProduct() {
         isLoading = true
-        
-        NetworkLayer.shared.searchFetchProducts() { result in
-            self.isLoading = false
-            switch result {
-            case .success(let model):
-                self.productsName = model
+        Task {
+            do {
+                let model = try await NetworkLayer.shared.fetchProducts()
+                isLoading = false
+                products = model
                 DispatchQueue.main.async {
                     self.productTableView.reloadData()
                 }
-            case .failure(let error):
-                self.showError(with: error)
+            } catch {
+                showError(with: error)
             }
         }
     }
     
-    private func searchProducts(by word: String) {
+//    private func searchProducts(by word: String) {
+//        isLoading = true
+//
+//        NetworkLayer.shared.searchProducts(by: word) { result in
+//            self.isLoading = false
+//            switch result {
+//            case .success(let model):
+//                self.productsName = model
+//                DispatchQueue.main.async {
+//                    self.productTableView.reloadData()
+//                }
+//            case .failure(let error):
+//                self.showError(with: error)
+//            }
+//        }
+//    }
+    
+    private func searchProduct() {
         isLoading = true
-        
-        NetworkLayer.shared.searchProducts(by: word) { result in
-            self.isLoading = false
-            switch result {
-            case .success(let model):
-                self.productsName = model
+        Task {
+            do {
+                let model = try await NetworkLayer.shared.searchProduct()
+                isLoading = false
+                products = model
                 DispatchQueue.main.async {
                     self.productTableView.reloadData()
                 }
-            case .failure(let error):
-                self.showError(with: error)
+            } catch {
+                showError(with: error)
             }
         }
     }
@@ -218,6 +250,21 @@ extension ViewController: UITableViewDelegate {
                 DispatchQueue.main.async {
                     self.showEror(with: error)
                 }
+            }
+        }
+    }
+    
+    private func deleteProduct() {
+        
+        Task {
+            do {
+                let model = try await NetworkLayer.shared.deleteProduct
+                products = model
+                DispatchQueue.main.async {
+                    self.productTableView.reloadData()
+                }
+            } catch {
+                showError(with: error)
             }
         }
     }
