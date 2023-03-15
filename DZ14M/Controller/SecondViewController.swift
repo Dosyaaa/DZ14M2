@@ -15,15 +15,17 @@ class SecondViewController: UIViewController {
     @IBOutlet weak var categoryLabel: UITextField!
     @IBAction private func changeProduct() {
         guard let  product = product else {return}
-        NetworkLayer.shared.changeProduct(with: product) { result in
-            switch result {
-            case .success( _):
-                DispatchQueue.main.async {
-                    self.showSucces(with: product)
+        Task {
+            do {
+                let result = try await NetworkLayer.shared.changeProduct(with: product)
+                if result {
+                    DispatchQueue.main.async {
+                        self.showSucces(with: product)
+                    }
                 }
-            case .failure(let error):
+            } catch {
                 DispatchQueue.main.async {
-                    self.showEror(with: error)
+                    self.showError(with: error)
                 }
             }
         }
@@ -42,20 +44,27 @@ class SecondViewController: UIViewController {
     }
     
     func changeProducts(_ product: ProductsName) {
-        NetworkLayer.shared.changeProduct(with: product) { result in
-            DispatchQueue.main.async {
-                let alert = UIAlertController(
-                    title: "Succes",
-                    message: "Succesed",
-                    preferredStyle: .alert
-                )
-                alert.addAction(.init(title: "Okay", style: .cancel))
-                self.present(alert, animated: true)
+        guard product != nil else {
+            Task {
+                do {
+                    let result = try await NetworkLayer.shared.changeProduct(with: product)
+                    if result  {
+                        DispatchQueue.main.async {
+                            self.showSucces(with: product)
+                        }
+                        
+                    }
+                } catch {
+                    DispatchQueue.main.async {
+                        self.showError(with: error)
+                    }
+                }
             }
+            return
         }
     }
     
-    private func showEror(with message: Error) {
+    private func showError(with message: Error) {
         let alert = UIAlertController(
             title: "Error",
             message: message.localizedDescription,

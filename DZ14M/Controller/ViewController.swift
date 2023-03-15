@@ -71,23 +71,6 @@ class ViewController: UIViewController, UICollectionViewDelegate {
         }
     }
     
-//    private func fetchProduct() {
-//        isLoading = true
-//
-//        NetworkLayer.shared.searchFetchProducts() { result in
-//            self.isLoading = false
-//            switch result {
-//            case .success(let model):
-//                self.productsName = model
-//                DispatchQueue.main.async {
-//                    self.productTableView.reloadData()
-//                }
-//            case .failure(let error):
-//                self.showError(with: error)
-//            }
-//        }
-//    }
-    
     private func fetchProduct() {
         isLoading = true
         Task {
@@ -104,28 +87,11 @@ class ViewController: UIViewController, UICollectionViewDelegate {
         }
     }
     
-//    private func searchProducts(by word: String) {
-//        isLoading = true
-//
-//        NetworkLayer.shared.searchProducts(by: word) { result in
-//            self.isLoading = false
-//            switch result {
-//            case .success(let model):
-//                self.productsName = model
-//                DispatchQueue.main.async {
-//                    self.productTableView.reloadData()
-//                }
-//            case .failure(let error):
-//                self.showError(with: error)
-//            }
-//        }
-//    }
-    
-    private func searchProduct() {
+    private func searchProduct(by word: String) {
         isLoading = true
         Task {
             do {
-                let model = try await NetworkLayer.shared.searchProduct()
+                let model = try await NetworkLayer.shared.searchProduct(by: word)
                 isLoading = false
                 products = model
                 DispatchQueue.main.async {
@@ -238,30 +204,16 @@ extension ViewController: UITableViewDelegate {
         alert.addAction(.init(title: "Okay", style: .cancel))
         present(alert, animated: true)
     }
-    
-    private func deleteProducts(product: ProductsName) {
-        NetworkLayer.shared.deleteProduct(with: product) { result in
-            switch result {
-            case .success( _):
-                DispatchQueue.main.async {
-                    self.showSucces(with: product)
-                }
-            case .failure(let error):
-                DispatchQueue.main.async {
-                    self.showEror(with: error)
-                }
-            }
-        }
-    }
-    
-    private func deleteProduct() {
-        
+
+    private func deleteProduct(product: ProductsName) {
         Task {
             do {
-                let model = try await NetworkLayer.shared.deleteProduct
-                products = model
-                DispatchQueue.main.async {
-                    self.productTableView.reloadData()
+                guard let product = product1 else { return }
+                let model = try await NetworkLayer.shared.deleteProduct()
+                if model {
+                    DispatchQueue.main.async {
+                        self.showSucces(with: product )
+                    }
                 }
             } catch {
                 showError(with: error)
@@ -281,7 +233,7 @@ extension ViewController: UITableViewDelegate {
                 self.productsName.remove(at: indexPath.row)
                 tableView.deleteRows(at: [indexPath], with: .automatic)
                 let delete = self.productsName[indexPath.row]
-                self.deleteProducts(product: delete)
+                self.deleteProduct(product: delete)
                 self.productTableView.reloadData()
             }
             let close = UIAlertAction(title: "Нет", style: .cancel)
@@ -330,7 +282,7 @@ extension ViewController: UISearchBarDelegate {
         textDidChange searchText: String
     ) {
         if !isLoading {
-            searchProducts(by: searchText)
+            searchProduct(by: searchText)
         }
     }
 }
